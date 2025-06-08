@@ -1,0 +1,11 @@
+1. Initialize cdk app
+   cdk init app --<app_name> <programing_language> ===> language: java,javascript, typescript, csharp, go, python
+
+2. Synthesize the cdk app to see the YML file of the cloudformation stack
+   cdk synth
+
+3. Deploy the cdk app to aws
+   cdk deploy
+
+4. Destroy the cdk cloudformation stack
+   cdk destroy

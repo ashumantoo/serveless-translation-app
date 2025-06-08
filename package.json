@@ -1,0 +1,21 @@
+{
+  "name": "serverless-translation-app",
+  "version": "1.0.0",
+  "description": "AWS Lambda serverless application",
+  "scripts": {
+    "frontend-dev": "npm run dev --workspace=@sff/translation-app",
+    "deploy": "cd infrastructure; cdk deploy -f --require-approval never",
+    "destroy": "cd infrastructure; cdk destroy",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ashutosh Kumar Mantoo",
+  "license": "ISC",
+  "workspaces": [
+    "apps/*",
+    "infrastructure",
+    "packages/**"
+  ],
+  "devDependencies": {
+    "@sff/shared-types": "*"
+  }
+}

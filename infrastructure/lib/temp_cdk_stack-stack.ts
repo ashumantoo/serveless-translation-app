@@ -66,23 +66,50 @@ export class TempCdkStackStack extends cdk.Stack {
     })
 
 
+    const translationApi = new apiGateway.RestApi(this, "translationApi");
+
+    //the translate lambda construct
+    const translateLambdaFn = new lambdaNodeJS.NodejsFunction(
+      this,
+      'translateLambda',
+      {
+        entry: translateLambdaPath,
+        handler: "translate",
+        runtime: lambda.Runtime.NODEJS_20_X,
+        initialPolicy: [translateAccessPolicy],
+        environment: {
+          TRANSLATION_TABLE_NAME: table.tableName,
+          TRANSLATION_PARTION_KEY: "requestId"
+        }
+      });
+    //Allowing read and write permission to lambda function on dynamoDB: 
+    //This will give us all the permission on dynamoDB but if you want to define more strict permission then
+    //That will be possilbe by defining the policy similar to TranslateAccessPolicy as above
+    table.grantReadWriteData(translateLambdaFn);
+    translationApi.root.addMethod(
+      'POST',
+      new apiGateway.LambdaIntegration(translateLambdaFn)
+    );
+
+
     //the timeOfDay lambda construct
-    const timeOfDayFn = new lambdaNodeJS.NodejsFunction(this, 'timeOfDay', {
-      entry: translateLambdaPath,
-      handler: "index",
-      runtime: lambda.Runtime.NODEJS_20_X,
-      initialPolicy: [translateAccessPolicy],
-      environment: {
-        TRANSLATION_TABLE_NAME: table.tableName,
-        TRANSLATION_PARTION_KEY: "requestId"
-      }
-    });
-
-    const getTimeOfDay = new apiGateway.RestApi(this, "getTimeOfDay");
-
-    //Allowing read and write perssion for lambda function on dynamoDB
-    table.grantReadWriteData(timeOfDayFn);
-
-    getTimeOfDay.root.addMethod('POST', new apiGateway.LambdaIntegration(timeOfDayFn));
+    const getTranslationsLambdaFn = new lambdaNodeJS.NodejsFunction(
+      this,
+      'getTranslationsLambda',
+      {
+        entry: translateLambdaPath,
+        handler: "getTranslations",
+        runtime: lambda.Runtime.NODEJS_20_X,
+        initialPolicy: [],
+        environment: {
+          TRANSLATION_TABLE_NAME: table.tableName,
+          TRANSLATION_PARTION_KEY: "requestId"
+        }
+      });
+    table.grantReadWriteData(getTranslationsLambdaFn);
+    translationApi.root.addMethod(
+      'GET',
+      new apiGateway.LambdaIntegration(getTranslationsLambdaFn)
+    );
   }
 }

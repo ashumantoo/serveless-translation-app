@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react";
-import { ITranslateRequest, ITranslateResponse } from '@sff/shared-types';
+import { ITranslateDBObject, ITranslateRequest, ITranslateResponse } from '@sff/shared-types';
 
 async function getTranslation(args: {
   sourceLang: string,
@@ -14,11 +14,24 @@ async function getTranslation(args: {
       targetLang: args.targetLang,
       sourceText: args.text
     }
-    const result = await fetch("https://ufvsikdg94.execute-api.ap-south-1.amazonaws.com/prod/", {
+    const result = await fetch("https://kdcth95ixh.execute-api.ap-south-1.amazonaws.com/prod/", {
       method: "POST",
       body: JSON.stringify(request)
     });
     const returnedData = (await result.json()) as ITranslateResponse;
+    return returnedData;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+async function loadPreviousTranslations() {
+  try {
+    const result = await fetch("https://kdcth95ixh.execute-api.ap-south-1.amazonaws.com/prod/", {
+      method: "GET"
+    });
+    const returnedData = (await result.json()) as Array<ITranslateDBObject>;
     return returnedData;
   } catch (error) {
     console.log(error);
@@ -31,6 +44,7 @@ export default function Home() {
   const [targetLang, setTargetLang] = useState("");
   const [text, setText] = useState("");
   const [outputText, setOutputText] = useState<null | ITranslateResponse>(null);
+  const [previousTranslations, setPreviousTranslations] = useState<ITranslateDBObject[]>([]);
   return (
     <main className="text-center m-6">
       <div className="w-2/4 py-2 mt-4">
@@ -84,11 +98,36 @@ export default function Home() {
           </div>
           <button type="submit" className="w-full py-2 px-4 bg-blue-500 text-white rounded-md uppercase">Translate the text</button>
         </form>
+        <div>
+          <button
+            type="button"
+            className="w-full py-2 px-4 bg-emerald-500 text-white rounded-md uppercase mt-4"
+            onClick={async () => {
+              const data = await loadPreviousTranslations();
+              if (data) {
+                setPreviousTranslations(data);
+              }
+            }}
+          >
+            Load Previous Translations
+          </button>
+        </div>
         {outputText && <div className="text-start mt-4">
           <p>Translated Text:</p>
           <p>{outputText.outputText}</p>
           <p className="mt-1">Date Time: {new Date(outputText.date).toLocaleString()}</p>
         </div>}
+        {previousTranslations && previousTranslations.length > 0 && (
+          previousTranslations.map((pt) => {
+            return (
+              <div className="border border-blue-300 p-2 mt-2" key={pt.requestId}>
+                <p>Input Text: {pt.sourceText}</p>
+                <p>Translated Text: {pt.outputText}</p>
+                <p className="mt-1">Date Time: {new Date(pt.date).toLocaleString()}</p>
+              </div>
+            )
+          })
+        )}
       </div>
     </main>
   );

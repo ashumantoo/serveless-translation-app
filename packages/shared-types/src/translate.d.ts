@@ -10,6 +10,6 @@ export type ITranslateResponse = {
 }
 
 //& is kind of union operator - type will combination of ITranslateRequest and ITranslateResponse
-export type ITranslateDBObject = ITranslateRequest & ITranslateRequest & {
+export type ITranslateDBObject = ITranslateRequest & ITranslateResponse & {
   requestId: string;
 }
